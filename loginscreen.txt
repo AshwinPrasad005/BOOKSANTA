@@ -1,0 +1,151 @@
+import * as React from 'react';
+import { StyleSheet, Text, View , TextInput , TouchableOpacity, Alert , Modal , KeyboardAvoidingView } from 'react-native';
+import db from '../Config.js';
+import firebase from 'firebase';
+
+export default class loginScreen extends React.Component{
+
+  constructor(){
+    super();
+    this.state = {
+      email:'',
+      password:'',
+      modalVisible:true,
+      firstname:'',
+      lastname:'',
+      contactnumber:'',
+      postalAddress:'',
+      emailAddress:'',
+      password:'',
+      confirmPassword:'',
+    }
+  }
+
+  showModal = async () =>{
+    return(
+      <Modal animationType="fade" transparent={true} visible={this.state.modalVisible}>
+        <KeyboardAvoidingView>
+          <View style={styles.modalContainer}>
+            <ScrollView>
+              <Text>RESGISTRATION</Text>
+              <TextInput placeholder="firstname" onChangeText={this.state.firstname}/>
+              <TextInput placeholder="lastname" onChangeText={this.state.lastname}/>
+              <TextInput placeholder="contactnumber" onChangeText={this.state.contactnumber}/>
+              <TextInput placeholder="postalAddress" onChangeText={this.state.postalAddress}/>
+              <TextInput placeholder="email" onChangeText={this.state.emailAddress}/>
+              <TextInput placeholder="password" onChangeText={this.state.password}/>
+              <TextInput placeholder="confirmPassword" onChangeText={this.state.confirmPassword}/>
+              <TouchableOpacity onPress={this.signUpButton}>
+                <Text>RESGISTER</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={()=>{
+                this.setState({modalVisible:false})
+              }}>
+                <Text>CANCEL</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    )
+  }
+
+  signUpButton = async () =>{
+    if(this.state.email && this.state.password){
+        firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password)
+        .then((response)=>{
+          db
+          .collection("users")
+          .add({
+            "firstname":this.state.firstname,
+            "lastname":this.state.lastname,
+            "contactnumber":this.state.contactnumber,
+            "postalAddress":this.state.postalAddress,
+            "email":this.state.emailAddress,
+            "password":this.state.password,
+            "confirmPassword":this.state.confirmPassword
+          })
+          return Alert.alert("User added successfully")
+        })
+        .catch((error)=>{
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          return Alert.alert(errorCode+":"+errorMessage)
+        })
+    }
+  }
+
+  loginButton = async () => {
+    if(this.state.email && this.state.password){
+      try{
+        const response = await firebase
+        .auth()
+        .signInWithEmailAndPassword(this.state.email,this.state.password)
+        if(response){
+            this.props.navigation.navigate('RequetScreen')
+        }
+      }
+      catch(error){
+        console.log(error,"Host");
+        switch(error.code){
+          case "auth/users-not-found":Alert.alert("User does not exist");break;
+          case "auth/invalid-email":Alert.alert("Incorrect E-mail/PassWord");break;
+          default:Alert.alert("Error");break;
+        }
+      }
+    }
+  }
+
+ render(){
+    return(
+        <View>
+          {this.showModal()}
+          <TextInput placeholder="e-mail" style={styles.textInput} onChangeText={(text)=>{
+            this.setState({email:text})
+          }}/>
+          <TextInput placeholder="password" style={styles.textInput} onChangeText={(text)=>{
+            this.setState({password:text})
+          }}/>
+          <TouchableOpacity style={styles.saveButton} onPress={this.loginButton}>
+              <Text style={styles.buttonText}>LOGIN</Text>
+            </TouchableOpacity> 
+        </View>
+    )
+ }
+}
+
+const styles=StyleSheet.create({
+    textInput : {
+        marginTop:30, 
+        backgroundColor:"rgba(11,11,11,0.1)",
+        borderRadius:15,
+        borderColor:"black",
+        width:200,
+        marginLeft:75
+      },
+      buttonText : {
+        textAlign : 'center',
+        color : 'white'
+      },
+      saveButton: {
+        backgroundColor: 'orange',
+        justifyContent : 'center',
+        alignSelf : 'center',
+        borderWidth : 2,
+        borderRadius : 15,
+        marginTop:5,
+        width : 200,
+        height:50,
+      },
+      modalContainer:{ 
+        flex:1, 
+        borderRadius:20, 
+        justifyContent:'center', 
+        alignItems:'center', 
+        backgroundColor:"#f0000f", 
+        marginRight:30, 
+        marginLeft : 30, 
+        marginTop:80, 
+        marginBottom:80, 
+      }
+})
