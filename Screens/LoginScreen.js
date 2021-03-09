@@ -3,6 +3,7 @@ import { StyleSheet, Text, View , TextInput , TouchableOpacity, Alert , Modal , 
 import db from '../Config.js';
 import firebase from 'firebase';
 import  { ScrollView } from 'react-native-gesture-handler';
+// import SantaView from '../components/lottieView.js';
 
 export default class loginScreen extends React.Component{
 
@@ -16,8 +17,6 @@ export default class loginScreen extends React.Component{
       lastname:'',
       contactnumber:'',
       postalAddress:'',
-      emailAddress:'',
-      password:'',
       confirmPassword:'',
     }
   }
@@ -31,35 +30,35 @@ export default class loginScreen extends React.Component{
               width:"100%"
               }}>
               <KeyboardAvoidingView>
-                <Text>RESGISTRATION</Text>
+                <Text style={styles.buttonText}>RESGISTRATION</Text>
                 <TextInput placeholder="firstname" value={this.state.firstname} onChangeText={(text)=>{
                   this.setState({firstname:text})
-                }}/>
+                }} style={styles.textInput}/>
                 <TextInput placeholder="lastname" value={this.state.lastname} onChangeText={(text)=>{
                   this.setState({lastname:text})
-                }}/>
+                }} style={styles.textInput}/>
                 <TextInput placeholder="contactnumber" value={this.state.contactnumber} onChangeText={(text)=>{
                   this.setState({contactnumber:text})
-                }}/>
+                }} style={styles.textInput}/>
                 <TextInput placeholder="postalAddress" value={this.state.postalAddress} onChangeText={(text)=>{
                   this.setState({postalAddress:text})
-                }}/>
-                <TextInput placeholder="email" value={this.state.emailAddress} onChangeText={(text)=>{
-                  this.setState({emailAddress:text})
-                }}/>
+                }} style={styles.textInput}/>
+                <TextInput placeholder="email" value={this.state.email} onChangeText={(text)=>{
+                  this.setState({email:text})
+                }} style={styles.textInput}/>
                 <TextInput placeholder="password" value={this.state.password} onChangeText={(text)=>{
                   this.setState({password:text})
-                }}/>
+                }} style={styles.textInput}/>
                 <TextInput placeholder="confirmPassword" value={this.state.confirmPassword} onChangeText={(text)=>{
                   this.setState({confirmPassword:text})
-                }}/>
-                <TouchableOpacity onPress={this.signUpButton}>
-                  <Text>RESGISTER</Text>
+                }} style={styles.textInput}/>
+                <TouchableOpacity onPress={this.signUpButton} style={styles.saveButton}>
+                  <Text style={styles.buttonText}>RESGISTER</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={()=>{
                   this.setState({modalVisible:false})
-                }}>
-                  <Text>CANCEL</Text>
+                }} style={styles.saveButton}>
+                  <Text style={styles.buttonText}>CANCEL</Text>
                 </TouchableOpacity>
               </KeyboardAvoidingView>
             </ScrollView>
@@ -72,6 +71,7 @@ export default class loginScreen extends React.Component{
     if(this.state.email && this.state.password){
         firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password)
         .then((response)=>{
+          console.log("aswin");
           db
           .collection("users")
           .add({
@@ -79,17 +79,22 @@ export default class loginScreen extends React.Component{
             "lastname":this.state.lastname,
             "contactnumber":this.state.contactnumber,
             "postalAddress":this.state.postalAddress,
-            "email":this.state.emailAddress,
+            "email":this.state.email,
             "password":this.state.password,
-            "confirmPassword":this.state.confirmPassword
+            "confirmPassword":this.state.confirmPassword,
+            "bookRequestActive":false
           })
           return Alert.alert("User added successfully","User will be directed to the login screen",[{text:"ok",onPress:()=>this.setState({modalVisible:false})}])
         })
         .catch((error)=>{
           var errorCode = error.code;
           var errorMessage = error.message;
+          console.log(errorMessage,error)
           return Alert.alert(errorCode+":"+errorMessage)
         })
+    }
+    else{
+      Alert.alert("Enter Users details");
     }
   }
 
@@ -100,7 +105,7 @@ export default class loginScreen extends React.Component{
         .auth()
         .signInWithEmailAndPassword(this.state.email,this.state.password)
         if(response){
-            this.props.navigation.navigate('RequetScreen')
+            this.props.navigation.navigate('Req')
         }
       }
       catch(error){
@@ -116,14 +121,21 @@ export default class loginScreen extends React.Component{
 
  render(){
     return(
-        <View>
+        <View style={styles.container}>
           {this.showModal()}
-          <TextInput placeholder="e-mail" style={styles.textInput} onChangeText={(text)=>{
-            this.setState({email:text})
-          }}/>
-          <TextInput placeholder="password" style={styles.textInput} onChangeText={(text)=>{
-            this.setState({password:text})
-          }}/>
+          {/* <View>
+            <SantaView/>
+          </View> */}
+          <View style={styles.inputView}>
+            <TextInput placeholder="e-mail" style={styles.textInput} onChangeText={(text)=>{
+              this.setState({email:text})
+            }}/>
+          </View>
+          <View style={styles.inputView}>
+            <TextInput placeholder="password" style={styles.textInput} onChangeText={(text)=>{
+              this.setState({password:text})
+            }}/>
+          </View>
           <TouchableOpacity style={styles.saveButton} onPress={this.loginButton}>
               <Text style={styles.buttonText}>LOGIN</Text>
             </TouchableOpacity> 
@@ -134,12 +146,11 @@ export default class loginScreen extends React.Component{
 
 const styles=StyleSheet.create({
     textInput : {
-        marginTop:30, 
         backgroundColor:"rgba(11,11,11,0.1)",
         borderRadius:15,
         borderColor:"black",
         width:200,
-        marginLeft:75
+        justifyContent:"center",
       },
       buttonText : {
         textAlign : 'center',
@@ -165,5 +176,22 @@ const styles=StyleSheet.create({
         marginLeft : 30, 
         marginTop:80, 
         marginBottom:80, 
-      }
+      },
+      container: {
+        flex:1,
+        backgroundColor: '#fff', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+      }, 
+      inputView:{ 
+        marginTop:10, 
+        backgroundColor:"rgba(11,11,11,0.1)" 
+      }, 
+      submitButton:{ 
+        backgroundColor:"red" , 
+        justifyContent:"center", 
+        padding:10, 
+        marginTop:20, 
+        marginLeft:0 
+      },
 })
